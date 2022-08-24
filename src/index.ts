@@ -68,8 +68,18 @@ client.on('messageCreate', (message) => {
 		sendUserMessage(message);
 	}
 
-	if(sentMessage.includes("!help")){
+	if(sentMessage.includes("!helpcommand")){
 		sendHelpMessage(message);
+	}
+
+	if(sentMessage.includes("!testing")){
+		console.log(message);
+		let imageUrl = "";
+		message.attachments.forEach(attachment => {
+			imageUrl = attachment.url;
+		})
+		console.log(imageUrl);
+		message.channel.send(imageUrl);
 	}
 
 })
@@ -77,7 +87,7 @@ client.on('messageCreate', (message) => {
 client.login(process.env.TOKEN)
 
 function sendHelpMessage(message: DiscordJS.Message){
-	message.channel.send("!save <command name> <your message>");
+	message.channel.send("To create a command:\n```!save <command name> <your message>```\nTo call a command use ```!<command name>```\nThis will make the bot repeat the saved message.");
 }
 
 function sendUserMessage(messageObj: DiscordJS.Message){
@@ -86,6 +96,9 @@ function sendUserMessage(messageObj: DiscordJS.Message){
 	saveSchema.findOne({saveId: cutMessage}).then((data) =>{
 		if(data){
 			messageObj.channel.send(data.message);
+			if(typeof(data.imageUrl) === 'string'){
+				messageObj.channel.send(data.imageUrl);
+			}
 		}
 	});
 }
@@ -99,17 +112,36 @@ function saveUserMessage(message: DiscordJS.Message){
 	saveSchema.findOne({saveId: saveIdCreator}).then((data) =>{
 		if(data){
 			console.log("A message should be sent to the server")
-			message.channel.send("Sorry, the **"+ saveIdCreator +"**command name already exists. Try a different name.")
+			message.channel.send("Sorry, the **"+ saveIdCreator +"** command name already exists. Try a different name.")
 		}else{
 			for (let index = 2; index < splitString.length; index++) {
 				sentence += " " + splitString[index];
 			}
-		
-			new saveSchema({
-				saveId: saveIdCreator,
-				message: sentence
-			}).save()
+			
+			if(checkAttachment(message)){
+				new saveSchema({
+					saveId: saveIdCreator,
+					message: sentence,
+					imageUrl: getAttachmentUrl(message)
+				}).save()
+			}else{
+				new saveSchema({
+					saveId: saveIdCreator,
+					message: sentence,
+				}).save()
+			}
 		}
 	});
+}
 
+function checkAttachment(message: DiscordJS.Message) : boolean{
+	return message.attachments.size > 0;
+}
+
+function getAttachmentUrl(message: DiscordJS.Message) : String{
+	let imageUrl = "";
+	message.attachments.forEach(attachment => {
+		imageUrl = attachment.url;
+	})
+	return imageUrl;
 }

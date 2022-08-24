@@ -1,0 +1,15 @@
+{
+  "name": "Brian",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node index.ts"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^1.0.1",
+    "discord.js": "^13.0.0",
+    "dotenv": "^16.0.1",
+    "mongoose": "^6.5.2",
+    "nodemon": "^2.0.19",
+    "wokcommands": "^1.5.3"
+  }
+}

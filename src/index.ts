@@ -50,18 +50,6 @@ client.on('messageCreate', (message) => {
 		message.channel.send(randNum + "%");
 	}
 
-
-	if(sentMessage.includes(" 69 ")){
-		message.react('🇳');
-		message.react('🇮');
-		message.react('🇨');
-		message.react('🇪');
-	}
-
-	if(sentMessage.includes("21")){
-		message.channel.send("https://tenor.com/view/21-gif-20187208");
-	}
-
 	if(sentMessage.startsWith("!save")){
 		saveUserMessage(message);
 	}else if(sentMessage.at(0) == "!"){
@@ -82,12 +70,36 @@ client.on('messageCreate', (message) => {
 		message.channel.send(imageUrl);
 	}
 
+	if(sentMessage.startsWith("!delete")){
+		deleteUserMessage(message);
+	}
+
 })
 
 client.login(process.env.TOKEN)
 
+function deleteUserMessage(messageObj: DiscordJS.Message) {
+	let sentMessage = messageObj.content.toLowerCase();
+	let splitString =  sentMessage.split(" ");
+	let saveIdCreator = splitString[1];
+
+	saveSchema.findOne({saveId: saveIdCreator}).then((data) => {
+		if(data){
+			saveSchema.deleteOne({saveId: saveIdCreator}).then((result) =>{
+				if(result){
+					messageObj.channel.send("The **"+ saveIdCreator + "** command has been deleted.");
+				}
+			});
+		}else{
+			messageObj.channel.send("The **"+ saveIdCreator + "** command doesn't exists.")
+		}
+	});
+
+
+}
+
 function sendHelpMessage(message: DiscordJS.Message){
-	message.channel.send("To create a command:\n```!save <command name> <your message>```\nTo call a command use ```!<command name>```\nThis will make the bot repeat the saved message.");
+	message.channel.send("To create a command:\n```!save <command name> <your message> (attached image)```\nTo call a command use ```!<command name>```\nThis will make the bot repeat the saved message and image!");
 }
 
 function sendUserMessage(messageObj: DiscordJS.Message){
@@ -107,7 +119,7 @@ function saveUserMessage(message: DiscordJS.Message){
 	let sentMessage = message.content.toLowerCase();
 	let splitString =  sentMessage.split(" ");
 	let saveIdCreator = splitString[1];
-	let sentence = "";
+	let sentence = "‎";
 
 	saveSchema.findOne({saveId: saveIdCreator}).then((data) =>{
 		if(data){

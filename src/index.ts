@@ -1,9 +1,6 @@
 import DiscordJS, {Intents} from 'discord.js'
-//import WOKCommands from 'wokcommands'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
-//import path from 'path'
-
 import saveSchema from './save-schema'
 
 dotenv.config()
@@ -15,24 +12,13 @@ const client = new DiscordJS.Client({
 	],
 })
 
+//reports to console when the bot is running
 client.on('ready', async () => {
 	console.log("The bot is running!");
 	await mongoose.connect( process.env.MONGO_URI || '', { keepAlive: true} )
-
-
-	// new WOKCommands(client, {
-	// 	commandsDir: path.join(__dirname, '../commands'),
-	// 	typeScript: true,
-	// 	mongoUri: process.env.MONGO_URI
-	// })
-
-	// setTimeout(async () => {
-	// 	await new testSchema({
-	// 		message: 'hello world'
-	// 	}).save()
-	// }, 1000)
 })
 
+//when ever a user sends a message it scans for the desired trigger word
 client.on('messageCreate', (message) => {
 
 	//Ignore the bot's message asap
@@ -64,11 +50,8 @@ client.on('messageCreate', (message) => {
 		message.channel.send(randNum + "%");
 	}
 
-	// if(sentMessage.includes("325127234996404224")){
-	// 	message.channel.send("What do you want, <@" + user +">")
-	// }
 
-	if(sentMessage.includes("69")){
+	if(sentMessage.includes(" 69 ")){
 		message.react('🇳');
 		message.react('🇮');
 		message.react('🇨');
@@ -79,9 +62,9 @@ client.on('messageCreate', (message) => {
 		message.channel.send("https://tenor.com/view/21-gif-20187208");
 	}
 
-	if(sentMessage.includes("!save")){
+	if(sentMessage.startsWith("!save")){
 		saveUserMessage(message);
-	}else if (sentMessage.at(0) == "!"){
+	}else if(sentMessage.at(0) == "!"){
 		sendUserMessage(message);
 	}
 
@@ -94,7 +77,7 @@ client.on('messageCreate', (message) => {
 client.login(process.env.TOKEN)
 
 function sendHelpMessage(message: DiscordJS.Message){
-
+	message.channel.send("!save <command name> <your message>");
 }
 
 function sendUserMessage(messageObj: DiscordJS.Message){
@@ -105,21 +88,28 @@ function sendUserMessage(messageObj: DiscordJS.Message){
 			messageObj.channel.send(data.message);
 		}
 	});
-
 }
 
 function saveUserMessage(message: DiscordJS.Message){
 	let sentMessage = message.content.toLowerCase();
 	let splitString =  sentMessage.split(" ");
+	let saveIdCreator = splitString[1];
 	let sentence = "";
 
-	for (let index = 2; index < splitString.length; index++) {
-		sentence += " " + splitString[index];
-	}
-
-	new saveSchema({
-		saveId: splitString[1],
-		message: sentence
-	}).save()
+	saveSchema.findOne({saveId: saveIdCreator}).then((data) =>{
+		if(data){
+			console.log("A message should be sent to the server")
+			message.channel.send("Sorry, the **"+ saveIdCreator +"**command name already exists. Try a different name.")
+		}else{
+			for (let index = 2; index < splitString.length; index++) {
+				sentence += " " + splitString[index];
+			}
+		
+			new saveSchema({
+				saveId: saveIdCreator,
+				message: sentence
+			}).save()
+		}
+	});
 
 }

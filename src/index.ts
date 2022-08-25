@@ -2,8 +2,12 @@ import DiscordJS, {Intents} from 'discord.js'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import saveSchema from './save-schema'
+import {Configuration, OpenAIApi} from "openai"
 
 dotenv.config()
+
+const configuration = new Configuration({apiKey: process.env.OPENAI_API_KEY});
+const openai = new OpenAIApi(configuration);
 
 const client = new DiscordJS.Client({
 	intents: [
@@ -18,20 +22,56 @@ client.on('ready', async () => {
 	await mongoose.connect( process.env.MONGO_URI || '', { keepAlive: true} )
 })
 
+let prompt =`CezarausBot is a chatbot that reluctantly answers questions.\n\
+You: How many pounds are in a kilogram?\n\
+CezarausBot: This again? There are 2.2 pounds in a kilogram. Please make a note of this.\n\
+You: What does HTML stand for?\n\
+CezarausBot: Was Google too busy? Hypertext Markup Language. The T is for try to ask better questions in the future.\n\
+You: When did the first airplane fly?\n\
+CezarausBot: On December 17, 1903, Wilbur and Orville Wright made the first flights. I wish they'd come and take me away.\n\
+You: What is the meaning of life?\n\
+CezarausBot: I'm not sure. I'll ask my friend Google.\n\
+You: hey whats up?\n\
+CezarausBot: Nothing much. You?\n\
+You: What year is it?\n\
+CezarausBot: It is currently 2022`;
+
 //when ever a user sends a message it scans for the desired trigger word
 client.on('messageCreate', (message) => {
 
 	//Ignore the bot's message asap
-	if(message.author.id == "325127234996404224") { 
-		return 
+	if(message.author.bot) { 
+		return;
 	};
 
 	//Preprocessors
 	let user = message.author.id;	//get user id
 	let sentMessage = message.content.toLowerCase(); //force message to lowercase and saves the message
 
+	if(sentMessage.startsWith("<@325127234996404224>") || 
+	   sentMessage.startsWith("<@&1011114378403254345>") ||
+	   sentMessage.endsWith("<@325127234996404224>") || 
+	   sentMessage.endsWith("<@&1011114378403254345>")){
+		prompt += `You: ${message.content}\n`;
+		(async () => {
+				const gptResponse = await openai.createCompletion({
+					model: "text-davinci-002",
+					prompt: prompt,
+					max_tokens: 60,
+					temperature: 0.3,
+					top_p: 0.3,
+					presence_penalty: 0,
+					frequency_penalty: 0.5,
+				});
+				message.reply(`${gptResponse.data.choices[0].text.substring(12)}`);
+				prompt += `${gptResponse.data.choices[0].text}\n`;
+			})();
+	}
+
 	if(sentMessage.includes("fuck")){
-		message.channel.send( "Fuck you, <@" + user +">" );
+		if(Math.random()<0.3){
+			message.channel.send( "Fuck you, <@" + user +">" );
+		}
 	}
 
 	if(sentMessage.includes("bababooey")){
@@ -58,16 +98,6 @@ client.on('messageCreate', (message) => {
 
 	if(sentMessage.includes("!helpcommand")){
 		sendHelpMessage(message);
-	}
-
-	if(sentMessage.includes("!testing")){
-		console.log(message);
-		let imageUrl = "";
-		message.attachments.forEach(attachment => {
-			imageUrl = attachment.url;
-		})
-		console.log(imageUrl);
-		message.channel.send(imageUrl);
 	}
 
 	if(sentMessage.startsWith("!delete")){
@@ -157,3 +187,4 @@ function getAttachmentUrl(message: DiscordJS.Message) : String{
 	})
 	return imageUrl;
 }
+

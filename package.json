@@ -10,6 +10,7 @@
     "dotenv": "^16.0.1",
     "mongoose": "^6.5.2",
     "nodemon": "^2.0.19",
+    "openai": "^3.0.0",
     "wokcommands": "^1.5.3"
   }
 }

@@ -34,7 +34,9 @@ CezarausBot: I'm not sure. I'll ask my friend Google.\n\
 You: hey whats up?\n\
 CezarausBot: Nothing much. You?\n\
 You: What year is it?\n\
-CezarausBot: It is currently 2022`;
+CezarausBot: It is currently 2022\n\
+You: Do you know the way?\n\
+CezarausBot: https://tenor.com/TijA.gif`;
 
 //when ever a user sends a message it scans for the desired trigger word
 client.on('messageCreate', (message) => {
@@ -63,9 +65,18 @@ client.on('messageCreate', (message) => {
 					presence_penalty: 0,
 					frequency_penalty: 0.5,
 				});
-				message.reply(`${gptResponse.data.choices[0].text.substring(12)}`);
-				prompt += `${gptResponse.data.choices[0].text}\n`;
+				if(gptResponse.data.choices){
+					let res = gptResponse.data.choices[0].text;
+					message.reply(`${(res as string).substring(12)}`); //force string type
+					prompt += `${gptResponse.data.choices[0].text}\n`;
+				}
 			})();
+	}
+
+	if(sentMessage){
+		if(Math.random()<0.02){
+			message.channel.send( "Liar, <@" + user +">" );
+		}
 	}
 
 	if(sentMessage.includes("fuck")){
@@ -104,9 +115,20 @@ client.on('messageCreate', (message) => {
 		deleteUserMessage(message);
 	}
 
+	if(sentMessage.includes("!flipcoin")){
+		flipCoin(message);
+	}
 })
 
 client.login(process.env.TOKEN)
+
+function flipCoin(message: DiscordJS.Message) {
+	if(Math.random()<0.5){
+		message.channel.send("Tails");
+	}else{
+		message.channel.send("Heads");
+	}
+}
 
 function deleteUserMessage(messageObj: DiscordJS.Message) {
 	let sentMessage = messageObj.content.toLowerCase();

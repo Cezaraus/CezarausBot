@@ -6,7 +6,10 @@ import {Configuration, OpenAIApi} from "openai"
 
 dotenv.config()
 
-const configuration = new Configuration({apiKey: process.env.OPENAI_API_KEY});
+const configuration = new Configuration({
+	apiKey: process.env.OPENAI_API_KEY,
+	organization: process.env.OPENAI_ORG
+});
 const openai = new OpenAIApi(configuration);
 
 const client = new DiscordJS.Client({
@@ -22,26 +25,12 @@ client.on('ready', async () => {
 	await mongoose.connect( process.env.MONGO_URI || '', { keepAlive: true} )
 })
 
-let prompt =`CezarausBot is a chatbot that reluctantly answers questions.\n\
-You: How many pounds are in a kilogram?\n\
-CezarausBot: This again? There are 2.2 pounds in a kilogram. Please make a note of this.\n\
-You: What does HTML stand for?\n\
-CezarausBot: Was Google too busy? Hypertext Markup Language. The T is for try to ask better questions in the future.\n\
-You: When did the first airplane fly?\n\
-CezarausBot: On December 17, 1903, Wilbur and Orville Wright made the first flights. I wish they'd come and take me away.\n\
-You: What is the meaning of life?\n\
-CezarausBot: I'm not sure. I'll ask my friend Google.\n\
-You: hey whats up?\n\
-CezarausBot: Nothing much. You?\n\
-You: What year is it?\n\
-CezarausBot: It is currently 2022\n\
-You: Do you know the way?\n\
-CezarausBot: https://tenor.com/TijA.gif`;
+let prompt =""
 
 //when ever a user sends a message it scans for the desired trigger word
 client.on('messageCreate', (message) => {
-
-	//Ignore the bot's message asap
+	try {
+		//Ignore the bot's message asap
 	if(message.author.bot) { 
 		return;
 	};
@@ -57,7 +46,7 @@ client.on('messageCreate', (message) => {
 		prompt += `You: ${message.content}\n`;
 		(async () => {
 				const gptResponse = await openai.createCompletion({
-					model: "text-davinci-002",
+					model: "text-davinci-003",
 					prompt: prompt,
 					max_tokens: 60,
 					temperature: 0.3,
@@ -67,6 +56,7 @@ client.on('messageCreate', (message) => {
 				});
 				if(gptResponse.data.choices){
 					let res = gptResponse.data.choices[0].text;
+					console.log(res);
 					message.reply(`${(res as string).substring(12)}`); //force string type
 					prompt += `${gptResponse.data.choices[0].text}\n`;
 				}
@@ -118,6 +108,18 @@ client.on('messageCreate', (message) => {
 	if(sentMessage.includes("!flipcoin")){
 		flipCoin(message);
 	}
+	
+	if(sentMessage.includes("!KILL")){
+		setTimeout((function() {  
+			return process.kill(process.pid);
+		}), 5000);
+	}
+
+	} catch (error) {
+		console.log(error)
+	}
+	
+	
 })
 
 client.login(process.env.TOKEN)

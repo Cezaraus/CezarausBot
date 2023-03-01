@@ -30,90 +30,91 @@ let prompt =""
 //when ever a user sends a message it scans for the desired trigger word
 client.on('messageCreate', (message) => {
 	try {
+
+		//Preprocessors
+		let user = message.author.id;	//get user id
+		let sentMessage = message.content.toLowerCase(); //force message to lowercase and saves the message
+
 		//Ignore the bot's message asap
-	if(message.author.bot) { 
-		return;
-	};
+		if(message.author.bot || sentMessage.startsWith("!!")) { 
+			return;
+		};
 
-	//Preprocessors
-	let user = message.author.id;	//get user id
-	let sentMessage = message.content.toLowerCase(); //force message to lowercase and saves the message
-
-	if(sentMessage.startsWith("<@325127234996404224>") || 
-	   sentMessage.startsWith("<@&1011114378403254345>") ||
-	   sentMessage.endsWith("<@325127234996404224>") || 
-	   sentMessage.endsWith("<@&1011114378403254345>")){
-		prompt += `You: ${message.content}\n`;
-		(async () => {
-				const gptResponse = await openai.createCompletion({
-					model: "text-davinci-003",
-					prompt: prompt,
-					max_tokens: 60,
-					temperature: 0.3,
-					top_p: 0.3,
-					presence_penalty: 0,
-					frequency_penalty: 0.5,
-				});
-				if(gptResponse.data.choices){
-					let res = gptResponse.data.choices[0].text;
-					console.log(res);
-					message.reply(`${(res as string).substring(12)}`); //force string type
-					prompt += `${gptResponse.data.choices[0].text}\n`;
-				}
-			})();
-	}
-
-	if(sentMessage){
-		if(Math.random()<0.02){
-			message.channel.send( "Liar, <@" + user +">" );
+		if(sentMessage.startsWith("<@325127234996404224>") || 
+		sentMessage.startsWith("<@&1011114378403254345>") ||
+		sentMessage.endsWith("<@325127234996404224>") || 
+		sentMessage.endsWith("<@&1011114378403254345>")){
+			prompt += `${message.content}\n`;
+			(async () => {
+					const gptResponse = await openai.createCompletion({
+						model: "text-davinci-003",
+						prompt: prompt,
+						max_tokens: 200,
+						temperature: 0.3,
+						top_p: 0.3,
+						presence_penalty: 0,
+						frequency_penalty: 0.5,
+					});
+					if(gptResponse.data.choices){
+						let res = gptResponse.data.choices[0].text;
+						console.log(res);
+						message.reply(`${(res as string)}`); //force string type
+						prompt += `${gptResponse.data.choices[0].text}\n`;
+					}
+				})();
 		}
-	}
 
-	if(sentMessage.includes("fuck")){
-		if(Math.random()<0.3){
-			message.channel.send( "Fuck you, <@" + user +">" );
+		if(sentMessage){
+			if(Math.random()<0.02){
+				message.channel.send( "Liar, <@" + user +">" );
+			}
 		}
-	}
 
-	if(sentMessage.includes("bababooey")){
-		message.react('🅱️');
-		message.react('🅰️');
-		message.react('🇧');
-		message.react('🆎');
-		message.react('🇴');
-		message.react('🅾️');
-		message.react('🇪');
-		message.react('🇾');
-	}
+		if(sentMessage.includes("fuck")){
+			if(Math.random()<0.3){
+				message.channel.send( "Fuck you, <@" + user +">" );
+			}
+		}
 
-	if(sentMessage.includes("!chance")){
-		let randNum = Math.random()*100;
-		message.channel.send(randNum + "%");
-	}
+		if(sentMessage.includes("bababooey")){
+			message.react('🅱️');
+			message.react('🅰️');
+			message.react('🇧');
+			message.react('🆎');
+			message.react('🇴');
+			message.react('🅾️');
+			message.react('🇪');
+			message.react('🇾');
+		}
 
-	if(sentMessage.startsWith("!save")){
-		saveUserMessage(message);
-	}else if(sentMessage.at(0) == "!"){
-		sendUserMessage(message);
-	}
+		if(sentMessage.includes("!chance")){
+			let randNum = Math.random()*100;
+			message.channel.send(randNum + "%");
+		}
 
-	if(sentMessage.includes("!helpcommand")){
-		sendHelpMessage(message);
-	}
+		if(sentMessage.startsWith("!save")){
+			saveUserMessage(message);
+		}else if(sentMessage.at(0) == "!"){
+			sendUserMessage(message);
+		}
 
-	if(sentMessage.startsWith("!delete")){
-		deleteUserMessage(message);
-	}
+		if(sentMessage.includes("!helpcommand")){
+			sendHelpMessage(message);
+		}
 
-	if(sentMessage.includes("!flipcoin")){
-		flipCoin(message);
-	}
-	
-	if(sentMessage.includes("!KILL")){
-		setTimeout((function() {  
-			return process.kill(process.pid);
-		}), 5000);
-	}
+		if(sentMessage.startsWith("!delete")){
+			deleteUserMessage(message);
+		}
+
+		if(sentMessage.includes("!flipcoin")){
+			flipCoin(message);
+		}
+		
+		if(sentMessage.includes("!KILL")){
+			setTimeout((function() {  
+				return process.kill(process.pid);
+			}), 5000);
+		}
 
 	} catch (error) {
 		console.log(error)

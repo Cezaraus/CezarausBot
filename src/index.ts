@@ -40,10 +40,10 @@ client.on('messageCreate', (message) => {
 			return;
 		};
 
-		if(sentMessage.startsWith("<@325127234996404224>") || 
-		sentMessage.startsWith("<@&1011114378403254345>") ||
-		sentMessage.endsWith("<@325127234996404224>") || 
-		sentMessage.endsWith("<@&1011114378403254345>")){
+		if(sentMessage.startsWith("<@325127234996404224>")   || 
+		   sentMessage.startsWith("<@&1011114378403254345>") ||
+		   sentMessage.endsWith("<@325127234996404224>")     || 
+		   sentMessage.endsWith("<@&1011114378403254345>")){
 			prompt += `${message.content}\n`;
 			(async () => {
 					const gptResponse = await openai.createCompletion({
@@ -65,7 +65,7 @@ client.on('messageCreate', (message) => {
 		}
 
 		if(sentMessage){
-			if(Math.random()<0.02){
+			if(Math.random()<0.01){
 				message.channel.send( "Liar, <@" + user +">" );
 			}
 		}
